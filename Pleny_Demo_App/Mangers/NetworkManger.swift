@@ -9,7 +9,7 @@ import Foundation
 
 
 class NetworkManger {
-    static func loginUser(username: String, password: String , completion : @escaping (Result<User, Error>) -> ()) {
+    static func loginUser(username: String, password: String, completion: @escaping (Result<User, Error>) -> ()) {
         let credentials = ["username": username, "password": password]
         let jsonData = try! JSONSerialization.data(withJSONObject: credentials, options: [])
         let url = URL(string: "https://dummyjson.com/auth/login")!
@@ -19,40 +19,81 @@ class NetworkManger {
         request.httpBody = jsonData
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            do {
-                guard let data = data else {
-                    throw APIError.unknown(0)
-                }
-                
-                guard let httpResponse = response as? HTTPURLResponse else {
-                    throw APIError.unknown(0)
-                }
-                
-                switch httpResponse.statusCode {
-                case 200...299:
-                    let decoder = JSONDecoder()
-                    if let user = try? decoder.decode(User.self, from: data) {
-                        completion(.success(user))
-                    } else {
-                        throw APIError.unknown(httpResponse.statusCode)
-                    }
-                    
-                case 400:
-                    let errorMessage = APIError(statusCode: httpResponse.statusCode, data: data)
-                    completion(.failure(errorMessage))
-                    
-                default:
-                    throw APIError(statusCode: httpResponse.statusCode, data: data)
-                }
-            } catch let error as APIError {
-                print(error.localizedDescription)
+        URLSession.shared.dataTask(with: request) { (data, response, error) in
+            if let error = error {
                 completion(.failure(error))
+                return
+            }
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                let error = NSError(domain: "loginUser", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid HTTP Response"])
+                completion(.failure(error))
+                return
+            }
+            
+            guard (200...299).contains(httpResponse.statusCode) else {
+                let errorMessage = APIError(statusCode: httpResponse.statusCode, data: data)
+                completion(.failure(errorMessage))
+                return
+            }
+            
+            guard let data = data else {
+                let error = NSError(domain: "loginUser", code: -1, userInfo: [NSLocalizedDescriptionKey: "Empty Response Data"])
+                completion(.failure(error))
+                return
+            }
+            
+            do {
+                let decoder = JSONDecoder()
+                let user = try decoder.decode(User.self, from: data)
+                completion(.success(user))
             } catch {
-                print("An error occurred: \(error.localizedDescription)")
                 completion(.failure(error))
             }
+            
         }.resume()
-
     }
+
+    
+    static func fetchPosts(completion: @escaping (Result<[Post], Error>) -> ()) {
+        let url = URL(string: "https://dummyjson.com/posts")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        URLSession.shared.dataTask(with: request) { (data, response, error) in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                let error = NSError(domain: "fetchPosts", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid HTTP Response"])
+                completion(.failure(error))
+                return
+            }
+            
+            guard (200...299).contains(httpResponse.statusCode) else {
+                let error = NSError(domain: "fetchPosts", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: "HTTP Response Error"])
+                completion(.failure(error))
+                return
+            }
+            
+            guard let data = data else {
+                let error = NSError(domain: "fetchPosts", code: -1, userInfo: [NSLocalizedDescriptionKey: "Empty Response Data"])
+                completion(.failure(error))
+                return
+            }
+            
+            do {
+                let decoder = JSONDecoder()
+                let PostsResponse = try decoder.decode(PostsResponse.self, from: data)
+                completion(.success(PostsResponse.posts))
+            } catch {
+                completion(.failure(error))
+            }
+            
+        }.resume()
+    }
+
 }

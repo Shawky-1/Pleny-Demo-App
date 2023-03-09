@@ -12,17 +12,16 @@ class LoginVM: ObservableObject {
     
     @Published var user: User?
     
-    func loadTrending() {
-        
-    }
     
     func login(username: String, password: String) {
         
-        NetworkManger.loginUser(username: username, password: password) { result in
+        NetworkManger.loginUser(username: username, password: password) {[weak self] result in
+            guard let self = self else {return}
             Task{
                 switch result {
                 case .success(let user):
                     self.user = user
+                    self.saveUser(user: user)
                     
                 case .failure(let failure):
                     switch failure as? APIError{
@@ -51,8 +50,11 @@ class LoginVM: ObservableObject {
         
     }
     
-    func saveUser(){
-        
+    func saveUser(user: User){
+        UserDefaults.standard.set(user.firstName, forKey: "firstName")
+        UserDefaults.standard.set(user.lastName, forKey: "lastName")
+        UserDefaults.standard.set(user.id, forKey: "id")
+        UserDefaults.standard.set(user.token, forKey: "token")
     }
     
     

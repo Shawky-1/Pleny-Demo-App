@@ -8,11 +8,20 @@
 import SwiftUI
 
 struct PostsView: View {
-    
+    @StateObject var viewModel = PostsVM()
+    let user = User(id: 2, username: "Ahmed22", email: "Ahmed@Test.com", firstName: "Ahmed", lastName: "Alabiad", gender: "Male", image: "", token: "")
     var body: some View {
-        VStack{
-            
-            Text("Test")
+        NavigationStack{
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack {
+                    ForEach(viewModel.post) { post in
+                            PostView(post: post, user: user)
+                    }
+                }
+                .padding(.horizontal)
+            }
+        }.onAppear {
+            viewModel.fetchPosts()
         }
     }
 
