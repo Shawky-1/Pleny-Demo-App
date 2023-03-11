@@ -9,53 +9,36 @@ import Foundation
 
 @MainActor
 class LoginVM: ObservableObject {
-    
     @Published var user: User?
-    
-    
-    func login(username: String, password: String) {
-        
-        NetworkManger.loginUser(username: username, password: password) {[weak self] result in
-            guard let self = self else {return}
-            Task{
+    @Published var error: String?
+
+    func login(username: String, password: String, completion: @escaping () -> Void) {
+        NetworkManger.loginUser(username: username, password: password) { [weak self] result in
+            guard let self = self else { return }
+
+            Task {
                 switch result {
                 case .success(let user):
                     self.user = user
                     self.saveUser(user: user)
-                    
+                    completion()
+
                 case .failure(let failure):
                     switch failure as? APIError{
                     case .unauthorized(let string):
-                        print(string)
-                    case .none:
-                        print (".none")
-                    case .some(.badRequest):
-                        print (".badRequest")
-                    case .some(.accessDenied):
-                        print (".accessDenied")
-                        
-                    case .some(.resourceNotFound):
-                        print (".resourceNotFound")
-                        
-                    case .some(.unknown(let error)):
-                        print (error)
-                        
-                    case .some(.statusCode(_, data: let data)):
-                        print (".badRequest, \(data)")
-                        
+                        self.error = string
+                    default:
+                        self.error = "Error occured"
                     }
                 }
             }
         }
-        
     }
-    
+
     func saveUser(user: User){
         UserDefaults.standard.set(user.firstName, forKey: "firstName")
         UserDefaults.standard.set(user.lastName, forKey: "lastName")
         UserDefaults.standard.set(user.id, forKey: "id")
         UserDefaults.standard.set(user.token, forKey: "token")
     }
-    
-    
 }

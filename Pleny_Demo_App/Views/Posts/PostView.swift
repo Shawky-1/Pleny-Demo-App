@@ -10,7 +10,7 @@ import SwiftUI
 struct PostView: View {
     
     let post: Post
-    let user: User
+    let user: PostUser
     var body: some View {
         VStack(spacing: 8) {
             HeaderView(user: user, timestamp: "today")
@@ -19,13 +19,13 @@ struct PostView: View {
                 .cornerRadius(8)
         }
 //        .background(Color.gray)
-        .padding()
+//        .padding()
     }
 }
-
+//MARK: - Header View
 struct HeaderView: View {
     
-    let user: User
+    let user: PostUser
     let timestamp: String
     
     var body: some View {
@@ -42,21 +42,20 @@ struct HeaderView: View {
         .frame(height: 40)
     }
 }
-
+///Avatar loader
 struct UserAvatarView: View {
     
-    let image: String
+    let image: URL
     
     var body: some View {
-        Image(image)
-            .resizable()
+        AsyncImage(url: image)
             .scaledToFill()
             .frame(width: 40, height: 40)
             .clipped()
             .mask(Circle())
     }
 }
-
+//MARK: - Body View
 struct PostBodyView: View {
     
     let post: Post
@@ -175,8 +174,8 @@ struct PostImageGridView: View {
 
 struct PostView_Previews: PreviewProvider {
     static var previews: some View {
-        let user = User(id: 3, username: "AhmedAlabiad", email: "Ahmed@Test.com", firstName: "Ahmed", lastName: "Alabiad", gender: "Male", image: "Login_Place_Holder", token: "")
-        let post = Post(id: 5, title: "Title", body: "Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text", userId: 25, tags: [""], reactions: 5, images: ["Login_Place_Holder","Login_Place_Holder","Login_Place_Holder","Login_Place_Holder","Login_Place_Holder",])
+        let user = PostUser(id: 0, firstName: "Ahmed", lastName: "Alabiad", email: "Ahmed@gmail.com", phone: "01061520610", username: "Username", image: URL(string: "")!)
+        let post = Post(id: 5, title: "Title", body: "Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text", userId: 25, tags: [""], reactions: 5, images: ["Rectangle1","Rectangle", "Rectangle2"])
         PostView(post: post, user: user)
     }
 }

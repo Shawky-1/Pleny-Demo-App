@@ -6,7 +6,7 @@
 //
 
 import Foundation
-
+import UIKit
 @MainActor
 class PostsVM: ObservableObject {
     
@@ -15,12 +15,25 @@ class PostsVM: ObservableObject {
 
     
     func fetchPosts(){
-        NetworkManger.fetchPosts { result in
+        Task{
+            NetworkManger.fetchPosts { result in
+                switch result {
+                case .success(let posts):
+                    self.post = posts
+                case .failure(let failure):
+                    print(failure.localizedDescription)
+                }
+            }
+        }
+    }
+    
+    func fetchUser(id: Int, completion: @escaping (Result<PostUser, Error>) -> ()) {
+        NetworkManger.fetchUser(userID: id) { result in
             switch result {
-            case .success(let posts):
-                self.post = posts
-            case .failure(let failure):
-                print(failure.localizedDescription)
+            case .success(let postUser):
+                completion(.success(postUser))
+            case .failure(let error):
+                completion(.failure(error))
             }
         }
     }

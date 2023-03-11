@@ -11,7 +11,7 @@ import SwiftUI
 struct Pleny_Demo_AppApp: App {
     var body: some Scene {
         WindowGroup {
-            PostsView()
+            LoginView()
         }
     }
 }
