@@ -9,6 +9,7 @@ import Foundation
 
 
 struct Post: Codable, Identifiable {
+//    var uuid = UUID()
     let id: Int
     let title: String
     let body: String

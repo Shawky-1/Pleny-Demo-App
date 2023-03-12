@@ -55,8 +55,9 @@ class NetworkManger {
     }
 
     
-    static func fetchPosts(completion: @escaping (Result<[Post], Error>) -> ()) {
-        let url = URL(string: "https://dummyjson.com/posts")!
+    static func fetchPosts(page: Int = 1,completion: @escaping (Result<[Post], Error>) -> ()) {
+        let skip = page * 10
+        let url = URL(string: "https://dummyjson.com/posts?limit=10&skip=\(skip)")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -89,7 +90,8 @@ class NetworkManger {
                 let decoder = JSONDecoder()
                 let PostsResponse = try decoder.decode(PostsResponse.self, from: data)
                 completion(.success(PostsResponse.posts))
-            } catch {
+            } catch let error {
+                print(error.localizedDescription)
                 completion(.failure(error))
             }
             

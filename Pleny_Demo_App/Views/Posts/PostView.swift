@@ -10,16 +10,25 @@ import SwiftUI
 struct PostView: View {
     
     let post: Post
-    let user: PostUser
+    @StateObject var viewModel = PostsVM()
+    let images = ["https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxleHBsb3JlLWZlZWR8MXx8fGVufDB8fHx8&w=1000&q=80", "https://cdn.pixabay.com/photo/2010/12/13/10/05/berries-2277_960_720.jpg", "https://upload.wikimedia.org/wikipedia/commons/b/ba/Lasagne_-_stonesoup.jpg", "https://cdnprod.mafretailproxy.com/sys-master-root/hc2/h23/35140086333470/1700Wx1700H_397729_main.jpg", "https://cdn.britannica.com/36/123536-050-95CB0C6E/Variety-fruits-vegetables.jpg", "https://www.teenaagnel.com/wp-content/uploads/2019/12/food-photography-in-dubai.jpg" ]
+
+    var n = Int.random(in: 1...6)
+
     var body: some View {
         VStack(spacing: 8) {
-            HeaderView(user: user, timestamp: "today")
+            HeaderView(user: viewModel.user, timestamp: "today")
             PostBodyView(post: post)
-            PostImagesView(images: post.images)
+            let randomImageIndex = Int.random(in: 0..<images.count)
+            let randomNumberOfImages = Int.random(in: 1...images.count - randomImageIndex)
+            let selectedImages = Array(images[randomImageIndex..<randomImageIndex+randomNumberOfImages])
+
+            PostImagesView(images: [images[1]] )
                 .cornerRadius(8)
+        }.task {
+            await viewModel.fetchUser(id: post.userId)
+
         }
-//        .background(Color.gray)
-//        .padding()
     }
 }
 //MARK: - Header View
@@ -48,11 +57,19 @@ struct UserAvatarView: View {
     let image: URL
     
     var body: some View {
-        AsyncImage(url: image)
-            .scaledToFill()
-            .frame(width: 40, height: 40)
-            .clipped()
-            .mask(Circle())
+        AsyncImage(url: image) { image in
+            image
+                .resizable()
+                .scaledToFill()
+                .frame(width: 40, height: 40)
+                .mask(Circle())
+                .clipped()
+
+        } placeholder: {
+            Rectangle().fill(Color(red:61/255,green:61/255,blue:88/255))
+                    .frame(width: 40, height: 40)
+                    .mask(Circle())
+        }
     }
 }
 //MARK: - Body View
@@ -109,6 +126,8 @@ struct PostImageRowView: View {
             HStack(spacing: 4) {
                 PostImageItemView(image: images[0])
                 PostImageItemView(image: images[1])
+
+
             }.frame(height: 250)
         case .triple:
             HStack(spacing: 4) {
@@ -129,11 +148,19 @@ struct PostImageItemView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            Image(image)
-                .resizable()
-                .scaledToFill()
+            AsyncImage(url: URL(string:image)) { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: geometry.size.width,maxHeight: geometry.size.height ,alignment: .center)
+                    .clipped()
+//                    .mask(Circle())
+
+            } placeholder: {
+                Rectangle().fill(Color(red:61/255,green:61/255,blue:88/255))
                 .frame(maxWidth: geometry.size.width,maxHeight: geometry.size.height ,alignment: .center)
-                .clipped()
+                
+            }
         }
     }
 }
@@ -145,12 +172,12 @@ struct PostImageGridView: View {
     let images: [String]
     
     var body: some View {
-        HStack(spacing: 4) {
-            VStack(spacing: 4) {
+        VStack(spacing: 4) {
+            HStack(spacing: 4) {
                 PostImageItemView(image: images[0])
                 PostImageItemView(image: images[1])
             }
-            VStack(spacing: 4) {
+            HStack(spacing: 4) {
                 PostImageItemView(image: images[2])
                 if images.count > 4{
                     ZStack{
@@ -168,14 +195,14 @@ struct PostImageGridView: View {
                 
             }
         }
-        .frame(maxHeight: 343)
+        .frame(height: 343)
     }
 }
 
 struct PostView_Previews: PreviewProvider {
     static var previews: some View {
-        let user = PostUser(id: 0, firstName: "Ahmed", lastName: "Alabiad", email: "Ahmed@gmail.com", phone: "01061520610", username: "Username", image: URL(string: "")!)
+        let user = PostUser(id: 0, firstName: "Ahmed", lastName: "Alabiad", email: "Ahmed@gmail.com", phone: "01061520610", username: "Username", image: URL(string: "https://robohash.org/hicveldicta.png")!)
         let post = Post(id: 5, title: "Title", body: "Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text Lots of text", userId: 25, tags: [""], reactions: 5, images: ["Rectangle1","Rectangle", "Rectangle2"])
-        PostView(post: post, user: user)
+        PostView(post: post)
     }
 }
