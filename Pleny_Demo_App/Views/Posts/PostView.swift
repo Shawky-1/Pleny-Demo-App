@@ -30,8 +30,8 @@ struct PostView: View {
             let selectedImages = Array(images[randomImageIndex..<randomImageIndex+randomNumberOfImages])
             // try replacing the [images[1]] with selectedImages to review
             ///note: Using selectedImages variable will lead to some UI bugs because everytime you load new images, it gets randomized again
-            PostImagesView(images: selectedImages )
-                .cornerRadius(8)
+            PostImagesView(images: [images[0], images[1], images[2]])
+            .cornerRadius(8)
         }.task {
             // Fetch the user associated with the post using the view model
             await viewModel.fetchUser(id: post.userId)
