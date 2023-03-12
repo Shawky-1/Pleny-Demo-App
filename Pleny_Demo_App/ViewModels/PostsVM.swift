@@ -13,6 +13,7 @@ class PostsVM: ObservableObject, RandomAccessCollection {
     
     @Published var user: PostUser = PostUser(id: 0, firstName: "", lastName: "", email: "", phone: "", username: "", image: URL(string: "https://robohash.org/hicveldicta.png")!)
     @Published var posts: [Post] = []
+    @Published var searchResults: [Post] = []
     
     var startIndex: Int { posts.startIndex }
     var endIndex: Int { posts.endIndex }
@@ -57,6 +58,19 @@ class PostsVM: ObservableObject, RandomAccessCollection {
             case .failure(let failure):
                 print(failure.localizedDescription)
                 self.currentlyLoading = false
+            }
+        }
+    }
+    
+    func fetchSearch(searchTerm: String){
+        NetworkManger.searchPost(searchTerm: searchTerm) { result in
+            switch result {
+            case .success(let posts):
+                DispatchQueue.main.async {
+                    self.searchResults = posts
+                }
+            case .failure(let failure):
+                print(failure)
             }
         }
     }

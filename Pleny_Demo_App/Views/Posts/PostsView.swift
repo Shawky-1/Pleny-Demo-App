@@ -9,24 +9,38 @@ import SwiftUI
 
 struct PostsView: View {
     @StateObject var viewModel = PostsVM()
-    @State private var search:String = ""
+    @State private var searchText:String = ""
     let user: User
-
+    
     var body: some View {
         NavigationView {
-            
-            List(viewModel) { (post: Post) in
-                
-                PostView(post: post)
-                    .listRowSeparator(.hidden)
-                    .padding(.vertical, 10)
-                    .onAppear {
-                        viewModel.fetchPosts(currentItem: post)
+            if searchText.isEmpty{
+                if viewModel.posts.isEmpty{
+                    Text("No results")
+                } else {
+                    List(viewModel) { (post: Post) in
+                        
+                        PostView(post: post)
+                            .listRowSeparator(.hidden)
+                            .padding(.vertical, 10)
+                            .onAppear {
+                                viewModel.fetchPosts(currentItem: post)
+                            }
                     }
+                    .listStyle(PlainListStyle())
+                }
+            }else {
+                List(viewModel.searchResults) { post in
+                    Text(post.title)
+                }
             }
-            .listStyle(PlainListStyle())
         }
-        .searchable(text: $search)
+        .searchable(text: $searchText)
+        .onChange(of: searchText) { newValue in
+            if newValue.count > 2 {
+                viewModel.fetchSearch(searchTerm: newValue)
+            }
+        }
     }
     
 }
